@@ -122,7 +122,7 @@ public class FlowShowView extends BaseFlowShowView {
         progressPaint.setStrokeCap(Paint.Cap.ROUND);
         //扫过的画笔
         mSweepPaintOuterArc = new Paint(Paint.ANTI_ALIAS_FLAG);
-        LinearGradient linearGradient = new LinearGradient(600, 0, 0, 0, new int[]{ Color.parseColor("#1AE2AA24"), Color.parseColor("#0DE2AA24"), Color.parseColor("#00000000")}, null, LinearGradient.TileMode.MIRROR);
+        LinearGradient linearGradient = new LinearGradient(600, 0, 0, 0, new int[]{ Color.parseColor("#33E2AA24"),Color.parseColor("#1AE2AA24"), Color.parseColor("#00E2AA24")}, null, LinearGradient.TileMode.MIRROR);
         mSweepPaintOuterArc.setShader(linearGradient);
 
         //内环画笔
