@@ -3,10 +3,12 @@ package com.cxsz.flowshowview;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathMeasure;
 import android.graphics.RectF;
+import android.graphics.Shader;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 
@@ -33,9 +35,6 @@ public class FlowShowView extends BaseFlowShowView {
     //圆环画笔颜色
     private int mOuterArcColor;
     private int mProgressOuterArcColor;
-    //内环画笔颜色
-    private int mInnerArcColor;
-    private int mProgressInnerArcColor;
     //内外环之间的间距
     private float mArcSpacing;
     //进度条的圆点属性
@@ -49,18 +48,15 @@ public class FlowShowView extends BaseFlowShowView {
     //默认圆环之间间距
     private static final float DEFAULT_ARC_SPACING = 10;
     //外环的默认属性
-    private static final float DEFAULT_OUTER_ARC_WIDTH = 8f;
+    private static final float DEFAULT_OUTER_ARC_WIDTH = 6f;
     private static final int DEFAULT_OUTER_ARC_COLOR = Color.parseColor("#FF3E4D6D");
     //外环进度的默认属性
     private static final int DEFAULT_PROGRESS_OUTER_ARC_COLOR = Color.parseColor("#FFE2AA24");
     //进度点的默认属性
-    private static final float DEFAULT_PROGRESS_POINT_RADIUS = 9;
+    private static final float DEFAULT_PROGRESS_POINT_RADIUS = 6;
     private static final int DEFAULT_PROGRESS_POINT_COLOR = Color.parseColor("#FFE2AA24");
     //内环默认属性
-    private static final float DEFAULT_INNER_ARC_WIDTH = 1.5f;
     private static final int DEFAULT_INNER_ARC_COLOR = Color.parseColor("#FFE2AA24");
-    //内环进度的默认属性
-    private static final int DEFAULT_PROGRESS_INNER_ARC_COLOR = Color.parseColor("#FFE2AA24");
     //指示器默认属性
     private static final int DEFAULT_INDICATOR_COLOR = Color.parseColor("#FFE2AA24");
 
@@ -84,6 +80,8 @@ public class FlowShowView extends BaseFlowShowView {
     private float mCalibrationEnd;
     //刻度的文本位置
     private float mCalibrationTextStart;
+    private Paint mSweepPaintOuterArc;
+    private Paint progressPaint;
 
     public FlowShowView(Context context) {
         this(context, null);
@@ -107,8 +105,6 @@ public class FlowShowView extends BaseFlowShowView {
         mOuterArcColor = DEFAULT_OUTER_ARC_COLOR;
         mProgressOuterArcColor = DEFAULT_PROGRESS_OUTER_ARC_COLOR;
         mProgressPointRadius = dp2px(DEFAULT_PROGRESS_POINT_RADIUS);
-        mInnerArcColor = DEFAULT_INNER_ARC_COLOR;
-        mProgressInnerArcColor = DEFAULT_PROGRESS_INNER_ARC_COLOR;
 
         //初始化画笔
         //外环画笔
@@ -116,6 +112,18 @@ public class FlowShowView extends BaseFlowShowView {
         mPaintOuterArc.setStrokeWidth(dp2px(DEFAULT_OUTER_ARC_WIDTH));
         mPaintOuterArc.setStyle(Paint.Style.STROKE);
         mPaintOuterArc.setStrokeCap(Paint.Cap.ROUND);
+        //进度的画笔
+        progressPaint = new Paint();
+        LinearGradient progresslinearGradient = new LinearGradient(600, 0, 0, 0, new int[]{ Color.parseColor("#FFE2AA24"), Color.parseColor("#E6E2AA24"), Color.parseColor("#CCE2AA24"),Color.parseColor("#B3E2AA24"),
+                Color.parseColor("#99E2AA24"), Color.parseColor("#80E2AA24"),Color.parseColor("#66E2AA24"), Color.parseColor("#4DE2AA24"), Color.parseColor("#33E2AA24"),Color.parseColor("#1AE2AA24"), Color.parseColor("#00E2AA24")}, null, LinearGradient.TileMode.MIRROR);
+        progressPaint.setShader(progresslinearGradient);
+        progressPaint.setStrokeWidth(dp2px(DEFAULT_OUTER_ARC_WIDTH));
+        progressPaint.setStyle(Paint.Style.STROKE);
+        progressPaint.setStrokeCap(Paint.Cap.ROUND);
+        //扫过的画笔
+        mSweepPaintOuterArc = new Paint(Paint.ANTI_ALIAS_FLAG);
+        LinearGradient linearGradient = new LinearGradient(600, 0, 0, 0, new int[]{ Color.parseColor("#1AE2AA24"), Color.parseColor("#0DE2AA24"), Color.parseColor("#00000000")}, null, LinearGradient.TileMode.MIRROR);
+        mSweepPaintOuterArc.setShader(linearGradient);
 
         //内环画笔
         mPaintInnerArc = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -125,6 +133,7 @@ public class FlowShowView extends BaseFlowShowView {
         mPaintProgressPoint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaintProgressPoint.setStyle(Paint.Style.FILL);
         mPaintProgressPoint.setColor(DEFAULT_PROGRESS_POINT_COLOR);
+
 
         //指示器画笔
         mPaintIndicator = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -174,7 +183,7 @@ public class FlowShowView extends BaseFlowShowView {
         //指标器的路径
         mIndicatorStart = mRectInnerArc.top + mArcSpacing / 2;
         mIndicatorPath = new Path();
-        mIndicatorPath.moveTo(mRadius, mIndicatorStart+40);
+        mIndicatorPath.moveTo(mRadius, mIndicatorStart + 40);
         mIndicatorPath.rLineTo(-dp2px(6), dp2px(40));
         mIndicatorPath.rLineTo(dp2px(12), 0);
         mIndicatorPath.close();
@@ -216,14 +225,11 @@ public class FlowShowView extends BaseFlowShowView {
         for (int i = 0; i < mCalibrationTotalNumber; i++) {
             //绘制刻度线
             if (i % mod == 0) {
-//                canvas.drawLine(mRadius, mCalibrationStart, mRadius, mCalibrationEnd, mPaintLargeCalibration);
                 //绘制刻度文字
                 int index = i / mod;
                 if (mCalibrationNumberText != null && mCalibrationNumberText.length > index) {
-                    canvas.drawText(String.valueOf(mCalibrationNumberText[index]), mRadius, mCalibrationTextStart, mPaintCalibrationText);
+                    canvas.drawText("• " + String.valueOf(mCalibrationNumberText[index]) + getUnitInfo(), mRadius, mCalibrationTextStart, mPaintCalibrationText);
                 }
-            } else {
-//                canvas.drawLine(mRadius, mCalibrationStart, mRadius, mCalibrationEnd, mPaintSmallCalibration);
             }
             //旋转
             canvas.rotate(mSmallCalibrationBetweenAngle, mRadius, mRadius);
@@ -247,8 +253,8 @@ public class FlowShowView extends BaseFlowShowView {
         PathMeasure pathMeasure = new PathMeasure(path, false);
         pathMeasure.getPosTan(pathMeasure.getLength(), mProgressPointPosition, null);
         //绘制圆环
-        mPaintOuterArc.setColor(mProgressOuterArcColor);
-        canvas.drawPath(path, mPaintOuterArc);
+//        mPaintOuterArc.setColor(mProgressOuterArcColor);
+        canvas.drawPath(path, progressPaint);
         //绘制进度点
         if (mProgressPointPosition[0] != 0 && mProgressPointPosition[1] != 0) {
             canvas.drawCircle(mProgressPointPosition[0], mProgressPointPosition[1], mProgressPointRadius, mPaintProgressPoint);
@@ -265,18 +271,20 @@ public class FlowShowView extends BaseFlowShowView {
 //        mPaintIndicator.setStyle(Paint.Style.STROKE);
 //        canvas.drawCircle(mRadius, mIndicatorStart + dp2px(6) + 1, dp2px(2), mPaintIndicator);
         canvas.restore();
+
+        canvas.drawArc(mRectOuterArc, arcStartAngle, progressSweepAngle, true, mSweepPaintOuterArc);
     }
 
     @Override
     protected void drawText(Canvas canvas, int value, String valueLevel, String currentTime) {
         //绘制数值
         float marginTop = mRadius + mTextSpacing;
-        canvas.drawText(String.valueOf(value) + getUnitInfo(), mRadius, marginTop - 30, mPaintValue);
+        canvas.drawText(String.valueOf(value) + getUnitInfo(), mRadius, marginTop - 10, mPaintValue);
 
         //绘制日期
         if (!TextUtils.isEmpty(currentTime)) {
             marginTop = marginTop + getPaintHeight(mPaintDate, currentTime) + mTextSpacing;
-            canvas.drawText(currentTime, mRadius, marginTop - 30, mPaintDate);
+            canvas.drawText(currentTime, mRadius, marginTop - 10, mPaintDate);
         }
     }
 
@@ -306,15 +314,6 @@ public class FlowShowView extends BaseFlowShowView {
      */
     public void setProgressOuterArcColor(@ColorInt int color) {
         mProgressOuterArcColor = color;
-
-        postInvalidate();
-    }
-
-    /**
-     * 设置内环的属性
-     */
-    public void setProgressInnerArcPaint(@ColorInt int color) {
-        mProgressInnerArcColor = color;
 
         postInvalidate();
     }

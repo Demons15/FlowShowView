@@ -30,7 +30,7 @@ public abstract class BaseFlowShowView extends View {
     private int mMin;
     private int mMax;
     //圆环角度
-    protected float mArcStartAngle;
+    public float mArcStartAngle;
     protected float mArcSweepAngle;
     //大小刻度的数量
     protected int mLargeCalibrationNumber;
@@ -57,7 +57,7 @@ public abstract class BaseFlowShowView extends View {
     //动画时长
     private long mProgressAnimTime;
     //当前进度的角度
-    private float mProgressSweepAngle;
+    public float mProgressSweepAngle;
     //文字之间的间距
     protected int mTextSpacing;
     //数值画笔
@@ -82,15 +82,9 @@ public abstract class BaseFlowShowView extends View {
     private final static int DEFAULT_SIZE = 250;
     //中间文字之间的间距
     private static final int DEFAULT_TEXT_SPACING = 7;
-    // 默认时间格式
-    private final static String DEFAULT_DATE_PATTERN = "yyyy-MM-dd";
-
     // 数值画笔属性
     private final static float DEFAULT_VALUE_TEXT_SIZE = 22f;
     private final static int DEFAULT_VALUE_TEXT_COLOR = Color.WHITE;
-    // 数值等级画笔属性
-    private final static float DEFAULT_VALUE_LEVEL_TEXT_SIZE = 25f;
-    private final static int DEFAULT_VALUE_LEVEL_COLOR = Color.WHITE;
     // 时间画笔属性
     private final static float DEFAULT_DATE_TEXT_SIZE = 12f;
     private final static int DEFAULT_DATE_TEXT_COLOR = Color.WHITE;
@@ -246,7 +240,6 @@ public abstract class BaseFlowShowView extends View {
         mValueLevel = "";
         //如果小于最小值
         if (value <= mMin) {
-//            setValueLevelByInterval(0);
             return 0;
         }
         //如果大于最大值
